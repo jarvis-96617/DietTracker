@@ -105,7 +105,6 @@
             font-size: 16px;
         }
 
-        /* 選擇照片按鈕 (虛線) */
         .btn-upload {
             background-color: #f9fafb;
             color: #4b5563;
@@ -126,7 +125,6 @@
             border-color: #6b7280;
         }
 
-        /* 主要實心按鈕 (深碳灰色) */
         .btn-primary {
             background-color: #374151;
             color: #ffffff;
@@ -177,23 +175,23 @@
             </div>
 
             <div class="input-group">
-                <label class="input-label" for="foodDesc">2. 補充描述 (選填)</label>
-                <input type="text" id="foodDesc" class="styled-input" placeholder="例如：微糖去冰、只吃了一半...">
+                <label class="input-label" for="foodDesc">2. 食物描述 (無照片時必填)</label>
+                <input type="text" id="foodDesc" class="styled-input" placeholder="例如：一碗滷肉飯、大杯珍珠奶茶...">
             </div>
 
             <div class="input-group">
-                <label class="input-label">3. 選擇飲食照片</label>
+                <label class="input-label">3. 選擇飲食照片 (選填)</label>
                 <button class="btn-upload" id="btnSelectImage" onclick="document.getElementById('fileInput').click()">
                     📷 拍攝 / 選擇照片
                 </button>
                 <input type="file" id="fileInput" accept="image/*" style="display: none;">
             </div>
             
-            <button class="btn-primary" id="btnAnalyze" onclick="startAnalysis()" style="display: none;">
+            <button class="btn-primary" id="btnAnalyze" onclick="startAnalysis()">
                 🚀 送出給 AI 分析
             </button>
 
-            <p class="hint-text" id="statusHint">請依序填寫資料並選擇照片</p>
+            <p class="hint-text" id="statusHint">請提供照片或文字描述後送出</p>
         </div>
 
         <div class="review-box" id="reviewSection">
@@ -249,48 +247,49 @@
         const btnSelectImage = document.getElementById('btnSelectImage');
         const btnAnalyze = document.getElementById('btnAnalyze');
         
-        // 變數：用來暫存使用者選擇的照片
         let selectedFile = null;
 
-        // 動作 1：使用者選好照片後，只更新畫面，不呼叫 AI
         fileInput.addEventListener('change', (event) => {
             selectedFile = event.target.files[0];
             if (!selectedFile) return;
 
-            // 改變按鈕樣式，提示已選好
             btnSelectImage.innerText = "✅ 已選好照片 (點擊可重新選擇)";
-            btnSelectImage.style.borderColor = "#10b981"; // 變成綠色邊框
+            btnSelectImage.style.borderColor = "#10b981"; 
             btnSelectImage.style.color = "#10b981";
             
-            // 顯示送出分析按鈕
-            btnAnalyze.style.display = "block";
             statusHint.innerText = "資料準備就緒！請點擊上方按鈕送出分析。";
-            
-            // 隱藏可能已經打開的審核表單
             reviewSection.style.display = 'none';
         });
 
-        // 動作 2：點擊「送出分析」按鈕後，才真正呼叫 AI
+        // 💡 導師修改：加入了無照片防呆機制與動態資料處理
         async function startAnalysis() {
-            if (!selectedFile) {
-                alert("請先選擇一張照片喔！");
+            const userDesc = document.getElementById('foodDesc').value.trim();
+
+            // 防呆：如果沒照片也沒打字，就擋下來
+            if (!selectedFile && userDesc === '') {
+                alert("請至少拍攝一張照片，或輸入食物描述喔！");
                 return;
             }
 
             try {
-                // 按鈕鎖定，避免重複點擊
                 btnAnalyze.disabled = true;
                 btnAnalyze.innerText = "⏳ AI 努力分析中...";
 
-                statusHint.innerText = "⏳ 正在讀取照片與資料...";
-                const base64Image = await convertToBase64(selectedFile);
+                let base64Image = null;
+                let mimeType = null;
+
+                // 如果有照片才進行轉碼
+                if (selectedFile) {
+                    statusHint.innerText = "⏳ 正在讀取照片資料...";
+                    base64Image = await convertToBase64(selectedFile);
+                    mimeType = selectedFile.type;
+                } else {
+                    statusHint.innerText = "⏳ 正在處理文字描述...";
+                }
                 
-                const userDesc = document.getElementById('foodDesc').value;
+                statusHint.innerText = "🧠 虛擬營養師正在分析並撰寫建議中...";
+                const aiResult = await analyzeWithGemini(base64Image, mimeType, userDesc);
                 
-                statusHint.innerText = "🧠 虛擬營養師正在看照片並撰寫建議中...";
-                const aiResult = await analyzeWithGemini(base64Image, selectedFile.type, userDesc);
-                
-                // 填入資料到下方的審核表單
                 document.getElementById('editName').value = aiResult.name;
                 document.getElementById('editCalories').value = aiResult.calories;
                 document.getElementById('editProtein').value = aiResult.protein;
@@ -298,11 +297,9 @@
                 document.getElementById('editCarbs').value = aiResult.carbs;
                 document.getElementById('editAdvice').value = aiResult.advice; 
 
-                // 顯示表單
                 reviewSection.style.display = 'block';
                 statusHint.innerHTML = "✨ <b>分析完成！</b><br>請確認下方數值與健康建議，並點擊儲存。";
 
-                // 恢復送出按鈕狀態
                 btnAnalyze.disabled = false;
                 btnAnalyze.innerText = "🚀 重新送出分析 (若需更改)";
 
@@ -314,7 +311,6 @@
             }
         }
 
-        // 動作 3：點擊「確認無誤，儲存至資料庫」
         async function confirmAndSave() {
             try {
                 const btnSave = document.querySelector('#reviewSection .btn-primary');
@@ -334,7 +330,6 @@
 
                 await saveToGoogleSheet(finalData, selectedMeal);
 
-                // 儲存成功後的畫面復原
                 reviewSection.style.display = 'none';
                 document.getElementById('foodDesc').value = '';
                 fileInput.value = ''; 
@@ -343,12 +338,12 @@
                 btnSelectImage.innerText = "📷 拍攝 / 選擇照片";
                 btnSelectImage.style.borderColor = "#9ca3af"; 
                 btnSelectImage.style.color = "#4b5563";
-                btnAnalyze.style.display = "none";
                 
                 statusHint.innerHTML = "✅ <b>完美成功！已紀錄至資料庫</b><br>您可以繼續紀錄下一餐囉！";
                 
                 btnSave.innerText = "💾 確認無誤，儲存至資料庫";
                 btnSave.disabled = false;
+                btnAnalyze.innerText = "🚀 送出給 AI 分析";
 
             } catch (error) {
                 statusHint.innerText = "❌ 儲存失敗：" + error.message;
@@ -367,21 +362,29 @@
             });
         }
 
+        // 💡 導師修改：動態調整給 AI 的指令與資料包
         async function analyzeWithGemini(base64Data, mimeType, userDesc) {
             const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_API_KEY;
             
-            let promptText = "你是一位專業的營養師。請分析這張食物照片，並嚴格以 JSON 格式回傳。必須包含以下欄位：name (食物名稱, 字串), calories (熱量, 整數), protein (蛋白質克數, 整數), fat (脂肪克數, 整數), carbs (碳水化合物克數, 整數), advice (以繁體中文撰寫50字以內的健康飲食建議與叮嚀, 字串)。不要輸出 any other text。";
+            let promptText = "你是一位專業的營養師。請嚴格以 JSON 格式回傳分析結果。必須包含以下欄位：name (食物名稱, 字串), calories (熱量, 整數), protein (蛋白質克數, 整數), fat (脂肪克數, 整數), carbs (碳水化合物克數, 整數), advice (以繁體中文撰寫50字以內的健康飲食建議與叮嚀, 字串)。不要輸出 any other text。";
             
             if (userDesc.trim() !== '') {
-                promptText += ` 另外，使用者提供了補充說明：「${userDesc}」，請務必參考此說明來調整估算與建議。`;
+                promptText += ` 使用者提供的食物描述為：「${userDesc}」，請根據此描述為主進行估算。`;
+            } else {
+                promptText += ` 請根據提供的照片進行分析。`;
+            }
+
+            // 動態組裝傳送給 AI 的內容
+            const partsArray = [{ text: promptText }];
+            
+            // 如果有照片，才把照片加入資料包
+            if (base64Data && mimeType) {
+                partsArray.push({ inline_data: { mime_type: mimeType, data: base64Data } });
             }
 
             const requestBody = {
                 contents: [{
-                    parts: [
-                        { text: promptText },
-                        { inline_data: { mime_type: mimeType, data: base64Data } }
-                    ]
+                    parts: partsArray
                 }]
             };
 
@@ -391,7 +394,7 @@
                 body: JSON.stringify(requestBody)
             });
             const data = await response.json();
-            if (!response.ok) throw new Error(data.error.message || '呼叫 AI 失敗。');
+            if (!response.ok) throw new Error(data.error.message || '呼叫 AI 失敗。可能塞車中，請稍後再試。');
             
             const aiText = data.candidates[0].content.parts[0].text;
             const cleanJson = aiText.replaceAll('```json', '').replaceAll('```', '').trim();
