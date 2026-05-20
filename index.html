@@ -8,10 +8,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="AI 飲食紀錄">
-    <link rel="apple-touch-icon" href="icon.png?v=2">
+    <link rel="apple-touch-icon" href="logologo.png?v=3">
 
     <style>
-        /* 🌫️ 質感灰簡約風格設定 */
+        /* 🌫️ 質感灰溫潤圓角風格設定 */
         body {
             background-color: #f3f4f6;
             color: #1f2937;
@@ -23,14 +23,15 @@
             align-items: center;
         }
         
+        /* 💡 24px 優雅大圓角，搭配極輕盈的擴散陰影 */
         .container {
             width: 100%;
-            max-width: 420px;
+            max-width: 440px;
             margin-top: 10px;
             background-color: #ffffff;
-            padding: 30px 25px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            padding: 30px 20px;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
             box-sizing: border-box;
         }
 
@@ -44,31 +45,32 @@
             letter-spacing: 0.5px;
         }
 
-        /* 💡 導師新增：即時熱量儀表板樣式 */
+        /* 調整間距，完美容納三個方塊 */
         .dashboard {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             margin-bottom: 25px;
         }
 
+        /* 16px 膠囊感圓角，框線改為極淡微霧灰 */
         .dash-card {
             flex: 1;
             background-color: #f9fafb;
-            border: 1.5px solid #e5e7eb;
-            border-radius: 14px;
-            padding: 15px 10px;
+            border: 1px solid #f1f3f5;
+            border-radius: 16px;
+            padding: 12px 4px;
             text-align: center;
         }
 
         .dash-title {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             color: #6b7280;
             margin-bottom: 6px;
         }
 
         .dash-value {
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 700;
             color: #1f2937;
         }
@@ -77,22 +79,77 @@
         .text-green { color: #10b981; }
         /* 熱量爆表變赤字為負數時顯示警告橙色 */
         .text-orange { color: #f97316; }
+        /* 體重專屬的科技藍色 */
+        .text-blue { color: #3b82f6; }
 
         .input-group { margin-bottom: 18px; width: 100%; }
         .input-label { display: block; font-size: 13px; font-weight: 600; color: #4b5563; margin-bottom: 8px; padding-left: 2px; }
-        .styled-input { width: 100%; padding: 14px 16px; background-color: #f9fafb; color: #1f2937; border: 1.5px solid #e5e7eb; border-radius: 12px; font-size: 15px; font-weight: 500; box-sizing: border-box; outline: none; transition: border-color 0.2s; -webkit-appearance: none; appearance: none; }
-        .styled-input:focus { border-color: #9ca3af; background-color: #ffffff; }
+        
+        /* 輸入框 16px 圓角，淡化邊框，並加入流暢的動態焦點外暈 */
+        .styled-input { 
+            width: 100%; 
+            padding: 14px 16px; 
+            background-color: #f9fafb; 
+            color: #1f2937; 
+            border: 1px solid #e9ecef; 
+            border-radius: 16px; 
+            font-size: 15px; 
+            font-weight: 500; 
+            box-sizing: border-box; 
+            outline: none; 
+            transition: all 0.2s ease-in-out; 
+            -webkit-appearance: none; 
+            appearance: none; 
+        }
+        .styled-input:focus { 
+            border-color: #ced4da; 
+            background-color: #ffffff; 
+            box-shadow: 0 0 0 4px rgba(241, 243, 245, 0.9);
+        }
         textarea.styled-input { height: 100px; font-family: inherit; resize: none; line-height: 1.5; }
         .styled-input::placeholder { color: #9ca3af; font-weight: normal; }
+        
         .row-group { display: flex; gap: 12px; }
-        .review-box { background-color: #ffffff; border-top: 2px dashed #e5e7eb; padding-top: 25px; margin-top: 25px; display: none; }
+        
+        /* 審核區上框線改為點線，減少生硬感 */
+        .review-box { background-color: #ffffff; border-top: 2px dotted #e5e7eb; padding-top: 25px; margin-top: 25px; display: none; }
         .review-box h3 { margin-top: 0; color: #374151; text-align: center; font-size: 16px; }
         
-        .btn-upload { background-color: #f9fafb; color: #4b5563; border: 2px dashed #9ca3af; padding: 18px; width: 100%; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; box-sizing: border-box; transition: all 0.2s; margin-top: 5px; }
+        /* 選擇照片按鈕 16px 圓角與淡化虛線 */
+        .btn-upload { 
+            background-color: #f9fafb; 
+            color: #4b5563; 
+            border: 1.5px dashed #ced4da; 
+            padding: 18px; 
+            width: 100%; 
+            border-radius: 16px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            box-sizing: border-box; 
+            transition: all 0.2s ease; 
+            margin-top: 5px; 
+        }
         .btn-upload:active { background-color: #f3f4f6; border-color: #6b7280; }
-        .btn-primary { background-color: #374151; color: #ffffff; border: none; padding: 18px; width: 100%; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; box-sizing: border-box; transition: 0.2s; margin-top: 15px; }
+        
+        /* 分析主按鈕與儲存按鈕完美 16px 圓角化 */
+        .btn-primary { 
+            background-color: #374151; 
+            color: #ffffff; 
+            border: none; 
+            padding: 18px; 
+            width: 100%; 
+            border-radius: 16px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            box-sizing: border-box; 
+            transition: all 0.2s ease; 
+            margin-top: 15px; 
+        }
         .btn-primary:active { background-color: #1f2937; }
         .btn-primary:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        
         .hint-text { text-align: center; color: #6b7280; font-size: 13px; margin-top: 15px; line-height: 1.6; }
     </style>
 </head>
@@ -102,12 +159,16 @@
 
         <div class="dashboard">
             <div class="dash-card">
-                <div class="dash-title">🔥 今日總消耗 (TDEE)</div>
-                <div class="dash-value" id="valTdee">-- <span style="font-size:12px;">kcal</span></div>
+                <div class="dash-title">🔥 今日總消耗</div>
+                <div class="dash-value" id="valTdee">-- <span style="font-size:10px;">kcal</span></div>
             </div>
             <div class="dash-card">
-                <div class="dash-title">⚖️ 剩餘熱量預算 (平衡)</div>
-                <div class="dash-value" id="valBalance">-- <span style="font-size:12px;">kcal</span></div>
+                <div class="dash-title">⚖️ 剩餘預算</div>
+                <div class="dash-value" id="valBalance">-- <span style="font-size:10px;">kcal</span></div>
+            </div>
+            <div class="dash-card">
+                <div class="dash-title">⚖️ 最新體重</div>
+                <div class="dash-value text-blue" id="valWeight">-- <span style="font-size:10px;">kg</span></div>
             </div>
         </div>
         
@@ -171,30 +232,33 @@
         
         let selectedFiles = [];
 
-        // 💡 導師新增：網頁一開啟，立刻連線載入今日數據看板
         window.addEventListener('DOMContentLoaded', fetchTodayStats);
 
         async function fetchTodayStats() {
             try {
-                // 從 Google Sheet 用 GET 方法撈取今日加總資料
                 const response = await fetch(GOOGLE_SHEET_URL);
                 if (!response.ok) return;
                 const stats = await response.json();
                 
-                // 更新 TDEE 顯示
-                document.getElementById('valTdee').innerHTML = `${Math.round(stats.tdee)} <span style="font-size:12px; font-weight:normal;">kcal</span>`;
+                document.getElementById('valTdee').innerHTML = `${Math.round(stats.tdee)} <span style="font-size:10px; font-weight:normal;">kcal</span>`;
                 
-                // 更新熱量平衡顯示，並根據正負數動態變色
                 const balanceEl = document.getElementById('valBalance');
                 const roundedBalance = Math.round(stats.balance);
-                
                 if (roundedBalance >= 0) {
-                    balanceEl.innerHTML = `+${roundedBalance} <span style="font-size:12px; font-weight:normal;">kcal</span>`;
-                    balanceEl.className = "dash-value text-green"; // 還有額度，顯示健康綠色
+                    balanceEl.innerHTML = `+${roundedBalance} <span style="font-size:10px; font-weight:normal;">kcal</span>`;
+                    balanceEl.className = "dash-value text-green"; 
                 } else {
-                    balanceEl.innerHTML = `${roundedBalance} <span style="font-size:12px; font-weight:normal;">kcal</span>`;
-                    balanceEl.className = "dash-value text-orange"; // 超標了，顯示警告橘色
+                    balanceEl.innerHTML = `${roundedBalance} <span style="font-size:10px; font-weight:normal;">kcal</span>`;
+                    balanceEl.className = "dash-value text-orange"; 
                 }
+
+                const weightEl = document.getElementById('valWeight');
+                if (stats.weight && stats.weight > 0) {
+                    weightEl.innerHTML = `${Number(stats.weight).toFixed(1)} <span style="font-size:10px; font-weight:normal;">kg</span>`;
+                } else {
+                    weightEl.innerHTML = `-- <span style="font-size:10px; font-weight:normal;">kg</span>`;
+                }
+
             } catch (e) {
                 console.error("載入今日數據失敗：", e);
             }
@@ -284,7 +348,6 @@
                 btnSave.disabled = false;
                 btnAnalyze.innerText = "🚀 送出給 AI 分析";
 
-                // 💡 導師防呆：紀錄成功後，立刻重新讀取最新的今日總能量，讓儀表板即時扣除熱量！
                 fetchTodayStats();
 
             } catch (error) {
