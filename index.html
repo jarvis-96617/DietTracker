@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI 飲食紀錄</title>
+    <style>
+        /* 🌫️ 質感灰簡約風格設定 */
+        body {
+            background-color: #f3f4f6;
+            color: #1f2937;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 420px;
+            margin-top: 10px;
+            background-color: #ffffff;
+            padding: 30px 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 700;
+            color: #111827;
+            margin-top: 0;
+            margin-bottom: 30px;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+            width: 100%;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 8px;
+            padding-left: 2px;
+        }
+
+        .styled-input {
+            width: 100%;
+            padding: 14px 16px;
+            background-color: #f9fafb;
+            color: #1f2937;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .styled-input:focus {
+            border-color: #9ca3af;
+            background-color: #ffffff;
+        }
+
+        textarea.styled-input {
+            height: 100px;
+            font-family: inherit;
+            resize: none;
+            line-height: 1.5;
+        }
+
+        .styled-input::placeholder {
+            color: #9ca3af;
+            font-weight: normal;
+        }
+
+        .row-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .review-box {
+            background-color: #ffffff;
+            border-top: 2px dashed #e5e7eb;
+            padding-top: 25px;
+            margin-top: 25px;
+            display: none;
+        }
+
+        .review-box h3 {
+            margin-top: 0;
+            color: #374151;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        /* 選擇照片按鈕 (虛線) */
+        .btn-upload {
+            background-color: #f9fafb;
+            color: #4b5563;
+            border: 2px dashed #9ca3af;
+            padding: 18px;
+            width: 100%;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: all 0.2s;
+            margin-top: 5px;
+        }
+
+        .btn-upload:active {
+            background-color: #f3f4f6;
+            border-color: #6b7280;
+        }
+
+        /* 主要實心按鈕 (深碳灰色) */
+        .btn-primary {
+            background-color: #374151;
+            color: #ffffff;
+            border: none;
+            padding: 18px;
+            width: 100%;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: 0.2s;
+            margin-top: 15px;
+        }
+        
+        .btn-primary:active {
+            background-color: #1f2937;
+        }
+
+        .btn-primary:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .hint-text {
+            text-align: center;
+            color: #6b7280;
+            font-size: 13px;
+            margin-top: 15px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI 飲食健康紀錄 🍏</h1>
+        
+        <div id="uploadSection">
+            <div class="input-group">
+                <label class="input-label" for="mealType">1. 選擇當前餐別</label>
+                <select id="mealType" class="styled-input">
+                    <option value="早餐">🌅 早餐</option>
+                    <option value="午餐">☀️ 午餐</option>
+                    <option value="晚餐">🌌 晚餐</option>
+                    <option value="點心">🍰 點心</option>
+                    <option value="消夜">🌙 消夜</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label" for="foodDesc">2. 補充描述 (選填)</label>
+                <input type="text" id="foodDesc" class="styled-input" placeholder="例如：微糖去冰、只吃了一半...">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">3. 選擇飲食照片</label>
+                <button class="btn-upload" id="btnSelectImage" onclick="document.getElementById('fileInput').click()">
+                    📷 拍攝 / 選擇照片
+                </button>
+                <input type="file" id="fileInput" accept="image/*" style="display: none;">
+            </div>
+            
+            <button class="btn-primary" id="btnAnalyze" onclick="startAnalysis()" style="display: none;">
+                🚀 送出給 AI 分析
+            </button>
+
+            <p class="hint-text" id="statusHint">請依序填寫資料並選擇照片</p>
+        </div>
+
+        <div class="review-box" id="reviewSection">
+            <h3>📝 營養師分析結果</h3>
+            <p style="font-size: 12px; color: #9ca3af; text-align: center; margin-top: -10px; margin-bottom: 20px;">
+                您可以修改數值或微調以下內容
+            </p>
+
+            <div class="input-group">
+                <label class="input-label">食物名稱</label>
+                <input type="text" id="editName" class="styled-input">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">總熱量 (大卡)</label>
+                <input type="number" id="editCalories" class="styled-input">
+            </div>
+
+            <div class="row-group">
+                <div class="input-group">
+                    <label class="input-label">蛋白質 (g)</label>
+                    <input type="number" id="editProtein" class="styled-input">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">脂肪 (g)</label>
+                    <input type="number" id="editFat" class="styled-input">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">碳水 (g)</label>
+                    <input type="number" id="editCarbs" class="styled-input">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">🩺 營養師的健康建議</label>
+                <textarea id="editAdvice" class="styled-input"></textarea>
+            </div>
+
+            <button class="btn-primary" onclick="confirmAndSave()">
+                💾 確認無誤，儲存至資料庫
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        const GEMINI_API_KEY = 'AIzaSyA8-tJ2hih02fNkilvERC4W2cERdg3lKpI';
+        const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbz-hMrf54ViOD9-gP4tN866PZZJADvnVXYTe0zbefUUZxLBACDVkgpgfpK1zu4cnF-F/exec';
+
+        const fileInput = document.getElementById('fileInput');
+        const statusHint = document.getElementById('statusHint');
+        const reviewSection = document.getElementById('reviewSection');
+        const btnSelectImage = document.getElementById('btnSelectImage');
+        const btnAnalyze = document.getElementById('btnAnalyze');
+        
+        // 變數：用來暫存使用者選擇的照片
+        let selectedFile = null;
+
+        // 動作 1：使用者選好照片後，只更新畫面，不呼叫 AI
+        fileInput.addEventListener('change', (event) => {
+            selectedFile = event.target.files[0];
+            if (!selectedFile) return;
+
+            // 改變按鈕樣式，提示已選好
+            btnSelectImage.innerText = "✅ 已選好照片 (點擊可重新選擇)";
+            btnSelectImage.style.borderColor = "#10b981"; // 變成綠色邊框
+            btnSelectImage.style.color = "#10b981";
+            
+            // 顯示送出分析按鈕
+            btnAnalyze.style.display = "block";
+            statusHint.innerText = "資料準備就緒！請點擊上方按鈕送出分析。";
+            
+            // 隱藏可能已經打開的審核表單
+            reviewSection.style.display = 'none';
+        });
+
+        // 動作 2：點擊「送出分析」按鈕後，才真正呼叫 AI
+        async function startAnalysis() {
+            if (!selectedFile) {
+                alert("請先選擇一張照片喔！");
+                return;
+            }
+
+            try {
+                // 按鈕鎖定，避免重複點擊
+                btnAnalyze.disabled = true;
+                btnAnalyze.innerText = "⏳ AI 努力分析中...";
+
+                statusHint.innerText = "⏳ 正在讀取照片與資料...";
+                const base64Image = await convertToBase64(selectedFile);
+                
+                const userDesc = document.getElementById('foodDesc').value;
+                
+                statusHint.innerText = "🧠 虛擬營養師正在看照片並撰寫建議中...";
+                const aiResult = await analyzeWithGemini(base64Image, selectedFile.type, userDesc);
+                
+                // 填入資料到下方的審核表單
+                document.getElementById('editName').value = aiResult.name;
+                document.getElementById('editCalories').value = aiResult.calories;
+                document.getElementById('editProtein').value = aiResult.protein;
+                document.getElementById('editFat').value = aiResult.fat;
+                document.getElementById('editCarbs').value = aiResult.carbs;
+                document.getElementById('editAdvice').value = aiResult.advice; 
+
+                // 顯示表單
+                reviewSection.style.display = 'block';
+                statusHint.innerHTML = "✨ <b>分析完成！</b><br>請確認下方數值與健康建議，並點擊儲存。";
+
+                // 恢復送出按鈕狀態
+                btnAnalyze.disabled = false;
+                btnAnalyze.innerText = "🚀 重新送出分析 (若需更改)";
+
+            } catch (error) {
+                console.error(error);
+                statusHint.innerText = "❌ 發生錯誤：" + error.message;
+                btnAnalyze.disabled = false;
+                btnAnalyze.innerText = "🚀 重新送出分析";
+            }
+        }
+
+        // 動作 3：點擊「確認無誤，儲存至資料庫」
+        async function confirmAndSave() {
+            try {
+                const btnSave = document.querySelector('#reviewSection .btn-primary');
+                btnSave.innerText = "⏳ 正在儲存中...";
+                btnSave.disabled = true;
+
+                const finalData = {
+                    name: document.getElementById('editName').value,
+                    calories: parseInt(document.getElementById('editCalories').value) || 0,
+                    protein: parseInt(document.getElementById('editProtein').value) || 0,
+                    fat: parseInt(document.getElementById('editFat').value) || 0,
+                    carbs: parseInt(document.getElementById('editCarbs').value) || 0,
+                    advice: document.getElementById('editAdvice').value 
+                };
+                
+                const selectedMeal = document.getElementById('mealType').value;
+
+                await saveToGoogleSheet(finalData, selectedMeal);
+
+                // 儲存成功後的畫面復原
+                reviewSection.style.display = 'none';
+                document.getElementById('foodDesc').value = '';
+                fileInput.value = ''; 
+                selectedFile = null;
+                
+                btnSelectImage.innerText = "📷 拍攝 / 選擇照片";
+                btnSelectImage.style.borderColor = "#9ca3af"; 
+                btnSelectImage.style.color = "#4b5563";
+                btnAnalyze.style.display = "none";
+                
+                statusHint.innerHTML = "✅ <b>完美成功！已紀錄至資料庫</b><br>您可以繼續紀錄下一餐囉！";
+                
+                btnSave.innerText = "💾 確認無誤，儲存至資料庫";
+                btnSave.disabled = false;
+
+            } catch (error) {
+                statusHint.innerText = "❌ 儲存失敗：" + error.message;
+                const btnSave = document.querySelector('#reviewSection .btn-primary');
+                btnSave.innerText = "💾 重新嘗試儲存";
+                btnSave.disabled = false;
+            }
+        }
+
+        function convertToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function analyzeWithGemini(base64Data, mimeType, userDesc) {
+            const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_API_KEY;
+            
+            let promptText = "你是一位專業的營養師。請分析這張食物照片，並嚴格以 JSON 格式回傳。必須包含以下欄位：name (食物名稱, 字串), calories (熱量, 整數), protein (蛋白質克數, 整數), fat (脂肪克數, 整數), carbs (碳水化合物克數, 整數), advice (以繁體中文撰寫50字以內的健康飲食建議與叮嚀, 字串)。不要輸出 any other text。";
+            
+            if (userDesc.trim() !== '') {
+                promptText += ` 另外，使用者提供了補充說明：「${userDesc}」，請務必參考此說明來調整估算與建議。`;
+            }
+
+            const requestBody = {
+                contents: [{
+                    parts: [
+                        { text: promptText },
+                        { inline_data: { mime_type: mimeType, data: base64Data } }
+                    ]
+                }]
+            };
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error.message || '呼叫 AI 失敗。');
+            
+            const aiText = data.candidates[0].content.parts[0].text;
+            const cleanJson = aiText.replaceAll('```json', '').replaceAll('```', '').trim();
+            return JSON.parse(cleanJson);
+        }
+
+        async function saveToGoogleSheet(finalData, mealType) {
+            const payload = {
+                type: mealType, 
+                name: finalData.name,
+                calories: finalData.calories,
+                protein: finalData.protein,
+                fat: finalData.fat,
+                carbs: finalData.carbs,
+                imageUrl: '',
+                advice: finalData.advice 
+            };
+
+            await fetch(GOOGLE_SHEET_URL, {
+                method: 'POST',
+                mode: 'no-cors', 
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            });
+        }
+    </script>
+</body>
+</html>
