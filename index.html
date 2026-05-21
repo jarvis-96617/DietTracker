@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="AI 飲食紀錄">
-    <link rel="apple-touch-icon" href="logologo.png?v=3">
+    <link rel="apple-touch-icon" href="logologo.png?v=4">
 
     <style>
         /* 🌫️ 質感灰溫潤圓角風格設定 */
@@ -23,7 +23,6 @@
             align-items: center;
         }
         
-        /* 💡 24px 優雅大圓角，搭配極輕盈的擴散陰影 */
         .container {
             width: 100%;
             max-width: 440px;
@@ -45,14 +44,8 @@
             letter-spacing: 0.5px;
         }
 
-        /* 調整間距，完美容納三個方塊 */
-        .dashboard {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 25px;
-        }
+        .dashboard { display: flex; gap: 8px; margin-bottom: 25px; }
 
-        /* 16px 膠囊感圓角，框線改為極淡微霧灰 */
         .dash-card {
             flex: 1;
             background-color: #f9fafb;
@@ -62,30 +55,16 @@
             text-align: center;
         }
 
-        .dash-title {
-            font-size: 11px;
-            font-weight: 600;
-            color: #6b7280;
-            margin-bottom: 6px;
-        }
+        .dash-title { font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 6px; }
+        .dash-value { font-size: 16px; font-weight: 700; color: #1f2937; }
 
-        .dash-value {
-            font-size: 16px;
-            font-weight: 700;
-            color: #1f2937;
-        }
-
-        /* 熱量赤字為正數時顯示健康綠色 */
         .text-green { color: #10b981; }
-        /* 熱量爆表變赤字為負數時顯示警告橙色 */
         .text-orange { color: #f97316; }
-        /* 體重專屬的科技藍色 */
         .text-blue { color: #3b82f6; }
 
         .input-group { margin-bottom: 18px; width: 100%; }
         .input-label { display: block; font-size: 13px; font-weight: 600; color: #4b5563; margin-bottom: 8px; padding-left: 2px; }
         
-        /* 輸入框 16px 圓角，淡化邊框，並加入流暢的動態焦點外暈 */
         .styled-input { 
             width: 100%; 
             padding: 14px 16px; 
@@ -111,11 +90,9 @@
         
         .row-group { display: flex; gap: 12px; }
         
-        /* 審核區上框線改為點線，減少生硬感 */
         .review-box { background-color: #ffffff; border-top: 2px dotted #e5e7eb; padding-top: 25px; margin-top: 25px; display: none; }
         .review-box h3 { margin-top: 0; color: #374151; text-align: center; font-size: 16px; }
         
-        /* 選擇照片按鈕 16px 圓角與淡化虛線 */
         .btn-upload { 
             background-color: #f9fafb; 
             color: #4b5563; 
@@ -132,7 +109,6 @@
         }
         .btn-upload:active { background-color: #f3f4f6; border-color: #6b7280; }
         
-        /* 分析主按鈕與儲存按鈕完美 16px 圓角化 */
         .btn-primary { 
             background-color: #374151; 
             color: #ffffff; 
@@ -163,7 +139,7 @@
                 <div class="dash-value" id="valTdee">-- <span style="font-size:10px;">kcal</span></div>
             </div>
             <div class="dash-card">
-                <div class="dash-title">⚖️ 剩餘預算</div>
+                <div class="dash-title">⚖️ 剩餘熱量</div>
                 <div class="dash-value" id="valBalance">-- <span style="font-size:10px;">kcal</span></div>
             </div>
             <div class="dash-card">
@@ -221,7 +197,7 @@
     </div>
 
     <script>
-        const GEMINI_API_KEY = 'AIzaSyBlhQQkBaWkqNLVQz0AWk7WD3wEGqvsFm0';
+        // ⚠️ 請確保這裡填入的是你最新、最正確的 Google Web App 網址
         const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbz-hMrf54ViOD9-gP4tN866PZZJADvnVXYTe0zbefUUZxLBACDVkgpgfpK1zu4cnF-F/exec';
 
         const fileInput = document.getElementById('fileInput');
@@ -236,7 +212,8 @@
 
         async function fetchTodayStats() {
             try {
-                const response = await fetch(GOOGLE_SHEET_URL);
+                // 💡 加上防快取時間戳記
+                const response = await fetch(`${GOOGLE_SHEET_URL}?_cb=${Date.now()}`);
                 if (!response.ok) return;
                 const stats = await response.json();
                 
@@ -293,8 +270,26 @@
                     statusHint.innerText = "⏳ 正在處理文字描述...";
                 }
                 
-                statusHint.innerText = "🧠 虛擬營養師正在綜合分析所有照片中...";
-                const aiResult = await analyzeWithGemini(base64ImagesArray, mimeType, userDesc);
+                statusHint.innerText = "🧠 正在透過安全通道請求營養師分析...";
+                
+                const payload = {
+                    action: "analyze",
+                    base64Images: base64ImagesArray,
+                    mimeType: mimeType,
+                    userDesc: userDesc
+                };
+
+                // 💡 使用 text/plain 繞過一切生硬的跨域預檢
+                const response = await fetch(GOOGLE_SHEET_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error || "後端 AI 分析失敗。");
+                
+                const aiResult = result.data;
                 
                 document.getElementById('editName').value = aiResult.name;
                 document.getElementById('editCalories').value = aiResult.calories;
@@ -322,16 +317,23 @@
                 btnSave.disabled = true;
 
                 const finalData = {
+                    action: "save",
+                    type: document.getElementById('mealType').value,
                     name: document.getElementById('editName').value,
                     calories: parseInt(document.getElementById('editCalories').value) || 0,
                     protein: parseInt(document.getElementById('editProtein').value) || 0,
                     fat: parseInt(document.getElementById('editFat').value) || 0,
                     carbs: parseInt(document.getElementById('editCarbs').value) || 0,
+                    imageUrl: '',
                     advice: document.getElementById('editAdvice').value 
                 };
                 
-                const selectedMeal = document.getElementById('mealType').value;
-                await saveToGoogleSheet(finalData, selectedMeal);
+                // 💡 使用 text/plain 送出，並完全不強求解析回傳文，實施最高規格容錯
+                await fetch(GOOGLE_SHEET_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(finalData)
+                });
 
                 reviewSection.style.display = 'none';
                 document.getElementById('foodDesc').value = '';
@@ -348,7 +350,8 @@
                 btnSave.disabled = false;
                 btnAnalyze.innerText = "🚀 送出給 AI 分析";
 
-                fetchTodayStats();
+                // 延遲一下下給 Google 寫入時間，隨即刷新數據
+                setTimeout(fetchTodayStats, 500);
 
             } catch (error) {
                 statusHint.innerText = "❌ 儲存失敗：" + error.message;
@@ -365,33 +368,6 @@
                 reader.onload = () => resolve(reader.result.split(',')[1]);
                 reader.onerror = error => reject(error);
             });
-        }
-
-        async function analyzeWithGemini(base64DataArray, mimeType, userDesc) {
-            const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_API_KEY;
-            let promptText = "你是一位專業的營養師。請分析這張或這幾張食物照片，並將其視為同一餐進行綜合分析。嚴格以 JSON 格式回傳分析結果。必須包含以下欄位：name (食物名稱, 字串), calories (熱量, 整數), protein (蛋白質克數, 整數), fat (脂肪克數, 整數), carbs (碳水化合物克數, 整數), advice (以繁體中文撰寫50字以內的健康飲食建議與叮嚀, 字串)。不要輸出 any other text。";
-            if (userDesc.trim() !== '') promptText += ` 另外，使用者提供了補充說明：「${userDesc}」，請務必參考此說明來調整估算與建議。`;
-
-            const partsArray = [{ text: promptText }];
-            if (base64DataArray.length > 0) {
-                base64DataArray.forEach(base64Data => {
-                    partsArray.push({ inline_data: { mime_type: mimeType, data: base64Data } });
-                });
-            }
-
-            const requestBody = { contents: [{ parts: partsArray }] };
-            const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error.message || '呼叫 AI 失敗。');
-            
-            const aiText = data.candidates[0].content.parts[0].text;
-            const cleanJson = aiText.replaceAll('```json', '').replaceAll('```', '').trim();
-            return JSON.parse(cleanJson);
-        }
-
-        async function saveToGoogleSheet(finalData, mealType) {
-            const payload = { type: mealType, name: finalData.name, calories: finalData.calories, protein: finalData.protein, fat: finalData.fat, carbs: finalData.carbs, imageUrl: '', advice: finalData.advice };
-            await fetch(GOOGLE_SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
         }
     </script>
 </body>
