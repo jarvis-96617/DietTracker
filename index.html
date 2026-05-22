@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI 飲食紀錄</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AI 飲食紀錄">
+    <link rel="apple-touch-icon" href="logologo.png?v=11">
+
+    <style>
+        /* 🌫️ 質感灰溫潤圓角風格設定 */
+        body {
+            background-color: #f3f4f6;
+            color: #1f2937;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 440px;
+            margin-top: 10px;
+            background-color: #ffffff;
+            padding: 30px 20px;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 700;
+            color: #111827;
+            margin-top: 0;
+            margin-bottom: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        .dashboard { display: flex; gap: 8px; margin-bottom: 25px; }
+
+        .dash-card {
+            flex: 1;
+            background-color: #f9fafb;
+            border: 1px solid #f1f3f5;
+            border-radius: 16px;
+            padding: 12px 4px;
+            text-align: center;
+        }
+
+        .dash-title { font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 6px; }
+        .dash-value { font-size: 16px; font-weight: 700; color: #1f2937; }
+
+        .text-green { color: #10b981; }
+        .text-orange { color: #f97316; }
+        .text-blue { color: #3b82f6; }
+
+        .input-group { margin-bottom: 18px; width: 100%; }
+        .input-label { display: block; font-size: 13px; font-weight: 600; color: #4b5563; margin-bottom: 8px; padding-left: 2px; }
+        
+        .styled-input { 
+            width: 100%; 
+            padding: 14px 16px; 
+            background-color: #f9fafb; 
+            color: #1f2937; 
+            border: 1px solid #e9ecef; 
+            border-radius: 16px; 
+            font-size: 15px; 
+            font-weight: 500; 
+            box-sizing: border-box; 
+            outline: none; 
+            transition: all 0.2s ease-in-out; 
+            -webkit-appearance: none; 
+            appearance: none; 
+        }
+        .styled-input:focus { 
+            border-color: #ced4da; 
+            background-color: #ffffff; 
+            box-shadow: 0 0 0 4px rgba(241, 243, 245, 0.9);
+        }
+        textarea.styled-input { height: 100px; font-family: inherit; resize: none; line-height: 1.5; }
+        .styled-input::placeholder { color: #9ca3af; font-weight: normal; }
+        
+        .row-group { display: flex; gap: 12px; }
+        
+        .review-box { background-color: #ffffff; border-top: 2px dotted #e5e7eb; padding-top: 25px; margin-top: 25px; display: none; }
+        .review-box h3 { margin-top: 0; color: #374151; text-align: center; font-size: 16px; }
+        
+        .btn-upload { 
+            background-color: #f9fafb; 
+            color: #4b5563; 
+            border: 1.5px dashed #ced4da; 
+            padding: 18px; 
+            width: 100%; 
+            border-radius: 16px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            box-sizing: border-box; 
+            transition: all 0.2s ease; 
+            margin-top: 5px; 
+        }
+        .btn-upload:active { background-color: #f3f4f6; border-color: #6b7280; }
+        
+        .btn-primary { 
+            background-color: #374151; 
+            color: #ffffff; 
+            border: none; 
+            padding: 18px; 
+            width: 100%; 
+            border-radius: 16px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            box-sizing: border-box; 
+            transition: all 0.2s ease; 
+            margin-top: 15px; 
+        }
+        .btn-primary:active { background-color: #1f2937; }
+        .btn-primary:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        
+        .hint-text { text-align: center; color: #6b7280; font-size: 13px; margin-top: 15px; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI 飲食健康紀錄 🍏</h1>
+
+        <div class="dashboard">
+            <div class="dash-card">
+                <div class="dash-title">🔥 今日總消耗</div>
+                <div class="dash-value" id="valTdee">-- <span style="font-size:10px;">kcal</span></div>
+            </div>
+            <div class="dash-card">
+                <div class="dash-title">⚖️ 剩餘熱量</div>
+                <div class="dash-value" id="valBalance">-- <span style="font-size:10px;">kcal</span></div>
+            </div>
+            <div class="dash-card">
+                <div class="dash-title">🏃‍♂️ 運動 / ⚖️ 體重</div>
+                <div class="dash-value text-blue" id="valWeight" style="font-size:13px; padding-top:2px; line-height:1.4;">--</div>
+            </div>
+        </div>
+        
+        <div id="uploadSection">
+            <div class="input-group">
+                <label class="input-label" for="mealType">1. 選擇當前餐別</label>
+                <select id="mealType" class="styled-input">
+                    <option value="早餐">🌅 早餐</option>
+                    <option value="午餐">☀️ 午餐</option>
+                    <option value="晚餐">🌌 晚餐</option>
+                    <option value="點心">🍰 點心</option>
+                    <option value="消夜">🌙 消夜</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label" for="foodDesc">2. 食物描述 (無照片時必填)</label>
+                <input type="text" id="foodDesc" class="styled-input" placeholder="例如：一碗滷肉飯、大杯珍珠奶茶...">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">3. 選擇飲食照片 (選填，可多選)</label>
+                <button class="btn-upload" id="btnSelectImage" onclick="document.getElementById('fileInput').click()">
+                    📷 拍攝 / 選擇多張照片
+                </button>
+                <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+            </div>
+            
+            <button class="btn-primary" id="btnAnalyze" onclick="startAnalysis()">
+                🚀 送出給 AI 分析
+            </button>
+            <p class="hint-text" id="statusHint">請提供照片或文字描述後送出</p>
+        </div>
+
+        <div class="review-box" id="reviewSection">
+            <h3>📝 營養師分析結果</h3>
+            <p style="font-size: 12px; color: #9ca3af; text-align: center; margin-top: -10px; margin-bottom: 20px;">
+                您可以修改數值或微調以下內容
+            </p>
+            <div class="input-group"><label class="input-label">食物名稱</label><input type="text" id="editName" class="styled-input"></div>
+            <div class="input-group"><label class="input-label">總熱量 (大卡)</label><input type="number" id="editCalories" class="styled-input"></div>
+            <div class="row-group">
+                <div class="input-group"><label class="input-label">蛋白質 (g)</label><input type="number" id="editProtein" class="styled-input"></div>
+                <div class="input-group"><label class="input-label">脂肪 (g)</label><input type="number" id="editFat" class="styled-input"></div>
+                <div class="input-group"><label class="input-label">碳水 (g)</label><input type="number" id="editCarbs" class="styled-input"></div>
+            </div>
+            <div class="input-group"><label class="input-label">🩺 營養師的健康建議</label><textarea id="editAdvice" class="styled-input"></textarea></div>
+            <button class="btn-primary" onclick="confirmAndSave()">💾 確認無誤，儲存至資料庫</button>
+        </div>
+    </div>
+
+    <script>
+        // ⚠️ 請在下一步將這裡單引號內的網址換成您最新發布、包含新 API Key 的 Google Apps Script 網址喔！
+        const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbzMaM8ov-nc8MA1ESx8ahnKva4bqDqvnQrNJG9rpyuAbMB4uJU9iZjwWVV7HWFOKzI2dA/exec';
+
+        const fileInput = document.getElementById('fileInput');
+        const statusHint = document.getElementById('statusHint');
+        const reviewSection = document.getElementById('reviewSection');
+        const btnSelectImage = document.getElementById('btnSelectImage');
+        const btnAnalyze = document.getElementById('btnAnalyze');
+        
+        let selectedFiles = [];
+
+        window.addEventListener('DOMContentLoaded', fetchTodayStats);
+
+        async function fetchTodayStats() {
+            try {
+                const response = await fetch(`${GOOGLE_SHEET_URL}?_cb=${Date.now()}`);
+                if (!response.ok) return;
+                const stats = await response.json();
+                
+                document.getElementById('valTdee').innerHTML = `${Math.round(stats.tdee)} <span style="font-size:10px; font-weight:normal;">kcal</span>`;
+                
+                const balanceEl = document.getElementById('valBalance');
+                const roundedBalance = Math.round(stats.balance);
+                if (roundedBalance >= 0) {
+                    balanceEl.innerHTML = `+${roundedBalance} <span style="font-size:10px; font-weight:normal;">kcal</span>`;
+                    balanceEl.className = "dash-value text-green"; 
+                } else {
+                    balanceEl.innerHTML = `${roundedBalance} <span style="font-size:10px; font-weight:normal;">kcal</span>`;
+                    balanceEl.className = "dash-value text-orange"; 
+                }
+
+                const weightEl = document.getElementById('valWeight');
+                var wText = `${Math.round(stats.active)} <span style="font-size:9px; font-weight:normal; color:#6b7280;">🏃‍♂️kcal</span><br>`;
+                if (stats.weight && stats.weight > 0) {
+                    wText += `${Number(stats.weight).toFixed(1)} <span style="font-size:9px; font-weight:normal; color:#6b7280;">kg</span>`;
+                } else {
+                    wText += `-- <span style="font-size:9px; font-weight:normal; color:#6b7280;">kg</span>`;
+                }
+                weightEl.innerHTML = wText;
+
+            } catch (e) {
+                console.error("載入今日數據失敗：", e);
+            }
+        }
+
+        fileInput.addEventListener('change', (event) => {
+            selectedFiles = Array.from(event.target.files);
+            if (selectedFiles.length === 0) return;
+            btnSelectImage.innerText = `✅ 已選好 ${selectedFiles.length} 張照片 (可重新選擇)`;
+            btnSelectImage.style.borderColor = "#10b981"; 
+            btnSelectImage.style.color = "#10b981";
+            statusHint.innerText = "資料準備就緒！請點擊上方按鈕送出分析。";
+            reviewSection.style.display = 'none';
+        });
+
+        async function startAnalysis() {
+            const userDesc = document.getElementById('foodDesc').value.trim();
+            if (selectedFiles.length === 0 && userDesc === '') {
+                alert("請至少拍攝一張照片，或輸入食物描述喔！");
+                return;
+            }
+            try {
+                btnAnalyze.disabled = true;
+                btnAnalyze.innerText = "⏳ AI 努力分析中...";
+                let base64ImagesArray = [];
+                let mimeType = selectedFiles.length > 0 ? selectedFiles[0].type : null;
+
+                if (selectedFiles.length > 0) {
+                    statusHint.innerText = `⏳ 正在讀取 ${selectedFiles.length} 張照片資料...`;
+                    base64ImagesArray = await Promise.all(selectedFiles.map(file => convertToBase64(file)));
+                } else {
+                    statusHint.innerText = "⏳ 正在處理文字描述...";
+                }
+                
+                statusHint.innerText = "🧠 正在透過安全通道請求營養師分析...";
+                
+                const payload = {
+                    action: "analyze",
+                    base64Images: base64ImagesArray,
+                    mimeType: mimeType,
+                    userDesc: userDesc
+                };
+
+                const response = await fetch(GOOGLE_SHEET_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const resText = await response.text();
+                const result = JSON.parse(resText);
+                
+                if (!result.success) throw new Error(result.error || "後端 AI 分析失敗。");
+                
+                const aiResult = result.data;
+                
+                document.getElementById('editName').value = aiResult.name;
+                document.getElementById('editCalories').value = aiResult.calories;
+                document.getElementById('editProtein').value = aiResult.protein;
+                document.getElementById('editFat').value = aiResult.fat;
+                document.getElementById('editCarbs').value = aiResult.carbs;
+                document.getElementById('editAdvice').value = aiResult.advice; 
+
+                reviewSection.style.display = 'block';
+                statusHint.innerHTML = "✨ <b>分析完成！</b><br>請確認下方數值與健康建議，並點擊儲存。";
+                btnAnalyze.disabled = false;
+                btnAnalyze.innerText = "🚀 重新送出分析 (若需更改)";
+            } catch (error) {
+                console.error(error);
+                statusHint.innerText = "❌ 發生錯誤：" + error.message;
+                btnAnalyze.disabled = false;
+                btnAnalyze.innerText = "🚀 重新送出分析";
+            }
+        }
+
+        async function confirmAndSave() {
+            try {
+                const btnSave = document.querySelector('#reviewSection .btn-primary');
+                btnSave.innerText = "⏳ 正在儲存中...";
+                btnSave.disabled = true;
+
+                const finalData = {
+                    action: "save",
+                    type: document.getElementById('mealType').value,
+                    name: document.getElementById('editName').value,
+                    calories: parseInt(document.getElementById('editCalories').value) || 0,
+                    protein: parseInt(document.getElementById('editProtein').value) || 0,
+                    fat: parseInt(document.getElementById('editFat').value) || 0,
+                    carbs: parseInt(document.getElementById('editCarbs').value) || 0,
+                    imageUrl: '',
+                    advice: document.getElementById('editAdvice').value 
+                };
+                
+                await fetch(GOOGLE_SHEET_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(finalData)
+                });
+
+                reviewSection.style.display = 'none';
+                document.getElementById('foodDesc').value = '';
+                fileInput.value = ''; 
+                selectedFiles = []; 
+                
+                btnSelectImage.innerText = "📷 拍攝 / 選擇多張照片";
+                btnSelectImage.style.borderColor = "#9ca3af"; 
+                btnSelectImage.style.color = "#4b5563";
+                
+                statusHint.innerHTML = "✅ <b>完美成功！已紀錄至資料庫</b><br>您可以繼續紀錄下一餐囉！";
+                
+                btnSave.innerText = "💾 確認無誤，儲存至資料庫";
+                btnSave.disabled = false;
+                btnAnalyze.innerText = "🚀 送出給 AI 分析";
+
+                setTimeout(fetchTodayStats, 500);
+
+            } catch (error) {
+                statusHint.innerText = "❌ 儲存失敗：" + error.message;
+                const btnSave = document.querySelector('#reviewSection .btn-primary');
+                btnSave.innerText = "💾 重新嘗試儲存";
+                btnSave.disabled = false;
+            }
+        }
+
+        function convertToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+            });
+        }
+    </script>
+</body>
+</html>
