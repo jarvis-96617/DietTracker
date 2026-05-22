@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="AI 飲食紀錄">
-    <link rel="apple-touch-icon" href="logologo.png?v=5">
+    <link rel="apple-touch-icon" href="logologo.png?v=6">
 
     <style>
         /* 🌫️ 質感灰溫潤圓角風格設定 */
@@ -197,8 +197,8 @@
     </div>
 
     <script>
-        // 💡 導師更新：已幫你自動填入最新部署好的 Google 網址囉！
-        const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycby-2q901jDZY7zl4m3rD6J6z4c24-5V9eW6OVkde34kRCWR-M4MeneJ8o2miOY84T3N/exec';
+        // 💡 導師校正：此處已綁定你最新的 Web App 網址
+        const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyWYKZhqZRsljc03Z6pd2Z84z_NxnmVrUSwW3XVg1MXAemRq6UgfIDyb-ok555-G04/exec';
 
         const fileInput = document.getElementById('fileInput');
         const statusHint = document.getElementById('statusHint');
@@ -284,7 +284,6 @@
                     body: JSON.stringify(payload)
                 });
                 
-                // 💡 導師超級修正：改為讀取純文字，實施最高規格防撞解碼
                 const resText = await response.text();
                 const result = JSON.parse(resText);
                 
